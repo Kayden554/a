@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>廉頗藺相如列傳</title>
+<style>
+    body {
+        font-family: Arial;
+        background: #0f172a;
+        color: white;
+        text-align: center;
+    }
+
+    .node {
+        display: inline-block;
+        padding: 12px;
+        margin: 10px;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .zhao { background: #3b82f6; }
+    .qin { background: #ef4444; }
+
+    #info, #event {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #ccc;
+    }
+
+    input {
+        width: 60%;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>廉頗藺相如列傳</h1>
+
+<!-- 勢力 -->
+<div>
+    <div class="node zhao" onclick="showInfo('king')">趙王</div>
+    <div class="node zhao" onclick="showInfo('lin')">藺相如</div>
+    <div class="node zhao" onclick="showInfo('lian')">廉頗</div>
+    <div class="node qin" onclick="showInfo('qin')">秦王</div>
+</div>
+
+<div id="info">👉 點擊人物查看資訊</div>
+
+<!-- 時間軸 -->
+<h2>⏳ 時間軸（拖動年份）</h2>
+<input type="range" min="-283" max="-279" step="1" value="-283" oninput="updateTimeline(this.value)">
+<div id="year">年份：公元前283年</div>
+<div id="event">事件：</div>
+
+<script>
+function showInfo(person) {
+    const data = {
+        king: "趙王：統治者，依賴文武大臣",
+        lin: "藺相如：外交家，完璧歸趙、澠池之會、忍讓（短期）",
+        lian: "廉頗：名將，後期不滿→負荊請罪",
+        qin: "秦王：強權，對趙國施壓"
+    };
+    document.getElementById("info").innerText = data[person];
+}
+
+function updateTimeline(year) {
+    year = parseInt(year);
+    document.getElementById("year").innerText = "年份：公元前" + Math.abs(year) + "年";
+
+    let event = "";
+
+    if (year == -283) {
+        event = "📜 秦國以15城換和氏璧 → 藺相如完璧歸趙（升上大夫）\n👉 廉頗地位仍較高，兩人無矛盾";
+    }
+
+    else if (year > -283 && year < -279) {
+        event = "⚖️ 平穩時期（約4年）\n👉 廉頗掌軍事、藺相如負外交\n👉 無衝突、無忍讓";
+    }
+
+    else if (year == -279) {
+        event = "🔥 同一年發生多事件：\n\n1️⃣ 澠池之會（藺相如立功 → 升上卿）\n2️⃣ 廉頗不滿（地位被超越）\n3️⃣ 藺相如短期忍讓（僅數月‼️）\n4️⃣ 廉頗醒悟 → 負荊請罪 → 將相和";
+    }
+
+    document.getElementById("event").innerText = event;
+}
+</script>
+
+</body>
+</html>
