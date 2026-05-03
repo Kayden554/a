@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>主題二人物關係圖表_廉頗藺相如列傳</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+/* 文字白色 */
+text{
+    fill:white;
+    font-weight:bold;
+    pointer-events:none;
+}
+
+/* 提示框 */
+.tooltip{
+    position:absolute;
+    background:rgba(0,0,0,0.8);
+    padding:6px 10px;
+    border-radius:6px;
+    display:none;
+    font-size:14px;
+}
+
+/* 資訊區 */
+#info,#event{
+    margin-top:12px;
+    padding:12px;
+    border:1px solid #ccc;
+    white-space:pre-line;
+}
+
+input{width:60%;}
+</style>
+</head>
+
+<body>
+
+<h1>廉頗藺相如列傳</h1>
+
+<div id="info">👉 點擊人物查看資訊</div>
+
+<!-- 🕸️ SVG 網絡 -->
+<svg width="520" height="420" id="graph">
+
+<!-- 線 -->
+<line id="line-king-lin"/>
+<line id="line-king-lian"/>
+<line id="line-king-qin"/>
+<line id="line-lin-lian"/>
+<line id="line-lin-qin"/>
+<line id="line-lian-qin"/>
+
+<!-- 👑 趙王 -->
+<g id="king" class="drag" onclick="showInfo('king')">
+    <circle r="25" fill="#3b82f6"/>
+    <text y="5" text-anchor="middle">趙王</text>
+</g>
+
+<!-- 🧠 藺相如 -->
+<g id="lin" class="drag" onclick="showInfo('lin')">
+    <circle r="25" fill="#3b82f6"/>
+    <text y="5" text-anchor="middle">藺相如</text>
+</g>
+
+<!-- ⚔️ 廉頗 -->
+<g id="lian" class="drag" onclick="showInfo('lian')">
+    <circle r="25" fill="#3b82f6"/>
+    <text y="5" text-anchor="middle">廉頗</text>
+</g>
+
+<!-- 🔥 秦王 -->
+<g id="qin" class="drag" onclick="showInfo('qin')">
+    <circle r="25" fill="#ef4444"/>
+    <text y="5" text-anchor="middle">秦王</text>
+</g>
+
+</svg>
+
+<div class="tooltip" id="tooltip"></div>
+
+<!-- 📌 顏色說明 -->
+<div style="margin-top:10px; line-height:1.8;">
+<b>📌 勢力：</b><br>
+<span style="color:#3b82f6;">● 趙國（藍）</span>
+<span style="color:#ef4444;">● 秦國（紅）</span><br><br>
+
+<b>🔗 關係：</b><br>
+<span style="color:#22c55e;">■ 合作</span>
+<span style="color:#3b82f6;">■ 對抗</span>
+<span style="color:#facc15;">■ 試探</span>
+<span style="color:#ef4444;">■ 衝突</span>
+</div>
+
+<!-- ⏳ 時間軸 -->
+<h2>⏳ 時間軸</h2>
+<input type="range" min="-283" max="-279" value="-283" step="1" oninput="updateTimeline(this.value)">
+<div id="year"></div>
+<div id="event"></div>
+
+<script>
+
+/* ===== 位置 ===== */
+let pos={
+king:{x:260,y:60},
+lin:{x:100,y:260},
+lian:{x:420,y:260},
+qin:{x:260,y:360}
+};
+
+/* ===== 畫圖 ===== */
+function draw(){
+for(let id in pos){
+let g=document.getElementById(id);
+g.setAttribute("transform",`translate(${pos[id].x},${pos[id].y})`);
+}
+updateLines();
+}
+
+/* ===== 線 ===== */
+function updateLines(){
+link("line-king-lin","king","lin");
+link("line-king-lian","king","lian");
+link("line-king-qin","king","qin");
+link("line-lin-lian","lin","lian");
+link("line-lin-qin","lin","qin");
+link("line-lian-qin","lian","qin");
+}
+
+function link(id,a,b){
+let l=document.getElementById(id);
+l.setAttribute("x1",pos[a].x);
+l.setAttribute("y1",pos[a].y);
+l.setAttribute("x2",pos[b].x);
+l.setAttribute("y2",pos[b].y);
+l.setAttribute("stroke","gray");
+l.setAttribute("stroke-width","2");
+}
+
+/* ===== 🎮 拖動 ===== */
+let dragging=null;
+
+document.querySelectorAll(".drag").forEach(el=>{
+el.addEventListener("mousedown",()=>dragging=el.id);
+});
+
+document.addEventListener("mousemove",e=>{
+if(dragging){
+let r=document.getElementById("graph").getBoundingClientRect();
+pos[dragging].x=e.clientX-r.left;
+pos[dragging].y=e.clientY-r.top;
+draw();
+}
+});
+
+document.addEventListener("mouseup",()=>dragging=null);
+
+/* ===== 💬 關係提示 ===== */
+const tooltip=document.getElementById("tooltip");
+
+const relationText={
+"line-lin-lian":"⚔️ 衝突 → 🤝 和解",
+"line-lin-qin":"🧠 外交對抗",
+"line-lian-qin":"⚔️ 軍事對抗",
+"line-king-lin":"👑 君臣",
+"line-king-lian":"👑 君臣",
+"line-king-qin":"🌏 博弈"
+};
+
+document.querySelectorAll("line").forEach(l=>{
+l.addEventListener("mousemove",e=>{
+tooltip.style.display="block";
+tooltip.style.left=e.pageX+10+"px";
+tooltip.style.top=e.pageY+10+"px";
+tooltip.innerText=relationText[l.id]||"關係";
+});
+l.addEventListener("mouseleave",()=>tooltip.style.display="none");
+});
+
+/* ===== 🧠 點擊人物資訊（完整修復版） ===== */
+function showInfo(person){
+
+const data={
+
+king:
+"👑 趙惠文王（趙國國君）\n\n" +
+"趙惠文王為趙國的一國之君，繆賢、廉頗和藺相如是其手下的官宦將相，他與秦國的秦昭王互相試探，非敵非友。",
+
+lin:
+"🧠 藺相如\n\n" +
+"藺相如是趙國宦臣繆賢的門客，在被引薦後成為出使秦國的使者，後來因功被拜為上大夫。\n\n" +
+"是秦昭王的主要對手，與廉頗互為將相，後來兩者成為刎頸之交。",
+
+lian:
+"⚔️ 廉頗\n\n" +
+"廉頗是趙國大將，後來因大破齊國而被拜為上卿，一開始與藺相如並不對付。\n\n" +
+"但見到其對趙國的忠誠與能力後，前往他家負荊請罪，終成摯友。",
+
+qin:
+"🔥 秦昭王\n\n" +
+"秦昭王為秦國國君，因貪念和氏璧而出書趙國，希望以十五座城池交換和氏璧。\n\n" +
+"最後卻被藺相如以智謀將和氏璧完璧歸趙，後來用計盡數被他化解。"
+};
+
+document.getElementById("info").innerText=data[person];
+
+}
+
+/* ===== 🎨 動態關係 ===== */
+function updateRelations(year){
+
+const c={
+ally:"#22c55e",
+enemy:"#3b82f6",
+conflict:"#ef4444",
+tension:"#facc15"
+};
+
+function set(id,color){
+let l=document.getElementById(id);
+l.setAttribute("stroke",color);
+l.setAttribute("stroke-width","4");
+}
+
+if(year==-283){
+set("line-king-lin",c.ally);
+set("line-king-lian",c.ally);
+set("line-king-qin",c.tension);
+set("line-lin-qin",c.enemy);
+}
+else if(year>-283 && year<-279){
+set("line-king-lin",c.ally);
+set("line-king-lian",c.ally);
+set("line-lin-lian",c.ally);
+set("line-lin-qin",c.enemy);
+set("line-lian-qin",c.enemy);
+}
+else if(year==-279){
+set("line-lin-lian",c.conflict);
+
+setTimeout(()=>{
+set("line-lin-lian",c.ally);
+},2000);
+}
+
+}
+
+/* ===== ⏳ 時間軸 ===== */
+function updateTimeline(year){
+year=parseInt(year);
+
+document.getElementById("year").innerText=
+"年份：公元前"+Math.abs(year)+"年";
+
+if(year==-283){
+document.getElementById("event").innerText="📜 完璧歸趙";
+}
+else if(year==-279){
+document.getElementById("event").innerText="🔥 將相和";
+}
+else{
+document.getElementById("event").innerText="⚖️ 平穩期";
+}
+
+updateRelations(year);
+}
+
+/* 初始化 */
+draw();
+updateTimeline(-283);
+
+</script>
+
+</body>
+</html>
